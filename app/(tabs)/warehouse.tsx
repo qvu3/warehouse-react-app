@@ -10,13 +10,26 @@ import {
   Alert,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { addItem, fetchWarehouseItems } from "../config/databaseService";
+import {
+  addItem,
+  deleteItem,
+  fetchWarehouseItems,
+} from "../config/databaseService";
+import { useAuth } from "../config/AuthContext";
+import { useRouter } from "expo-router";
 
 const WarehousePage = () => {
   const [itemCode, setItemCode] = useState("");
   const [quantity, setQuantity] = useState("");
   const [action, setAction] = useState("");
   const [items, setItems] = useState<any[]>([]);
+  const { logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace("/login");
+  };
 
   const handleAction = async () => {
     if (action === "add") {
@@ -45,6 +58,13 @@ const WarehousePage = () => {
         Alert.alert("Error", "Could not fetch items from the warehouse");
         console.error("Error fetching items:", error);
       }
+    } else if (action === "delete") {
+      if (itemCode && quantity) {
+        deleteItem(itemCode, parseInt(quantity));
+        alert("Xóa máy thành công!");
+      } else {
+        alert("Vui lòng nhập mã máy!");
+      }
     } else {
       Alert.alert(
         "Action Not Implemented",
@@ -58,7 +78,7 @@ const WarehousePage = () => {
       {/* Header */}
       <View style={styles.headerContainer}>
         <Text style={styles.greeting}>Xin chào bạn!</Text>
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Đăng xuất</Text>
         </TouchableOpacity>
       </View>
@@ -66,13 +86,13 @@ const WarehousePage = () => {
       {/* Input fields */}
       <TextInput
         style={styles.input}
-        placeholder="Mã máy"
+        placeholder="Nhập mã máy"
         value={itemCode}
         onChangeText={setItemCode}
       />
       <TextInput
         style={styles.input}
-        placeholder="Số lượng"
+        placeholder="Nhập số lượng"
         value={quantity}
         onChangeText={setQuantity}
         keyboardType="numeric"
@@ -86,12 +106,10 @@ const WarehousePage = () => {
         selectedValue={action}
         onValueChange={(itemValue) => setAction(itemValue)}
       >
-        <Picker.Item label="Hành động" value="" />
+        <Picker.Item label="Chọn hành động" value="" />
         <Picker.Item label="Thêm máy" value="add" />
         <Picker.Item label="Xóa máy" value="delete" />
         <Picker.Item label="Kiểm tra số lượng" value="view" />
-        <Picker.Item label="Hàng nhập" value="inbound" />
-        <Picker.Item label="Hàng xuất" value="outbound" />
       </Picker>
 
       <TouchableOpacity style={styles.goButton} onPress={handleAction}>

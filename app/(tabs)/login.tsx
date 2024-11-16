@@ -19,7 +19,7 @@ const LoginPage = () => {
   const handleLogin = async () => {
     const success = await login(email, password);
     if (success) {
-      router.push("/dashboard");
+      router.replace("/warehouse");
     } else {
       alert("Đăng nhập thất bại. Vui lòng thử lại!");
     }

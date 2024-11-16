@@ -49,6 +49,38 @@ export async function addItem(itemCode: string, quantity: number) {
     });
   }
 }
+// delete item from warehouse
+export async function deleteItem(itemCode: string, quantity: number) {
+  const warehouseRef = ref(database, "warehouse");
+  const existingItemQuery = query(
+    warehouseRef,
+    orderByChild("itemCode"),
+    equalTo(itemCode)
+  );
+
+  const snapshot = await get(existingItemQuery);
+  if (snapshot.exists()) {
+    const itemKey = Object.keys(snapshot.val())[0];
+    const existingItem = snapshot.val()[itemKey];
+
+    if (existingItem.quantity < quantity) {
+      throw new Error("Not enough items to delete");
+    }
+
+    const updatedQuantity = existingItem.quantity - quantity;
+    const itemRef = ref(database, `warehouse/${itemKey}`);
+
+    if (updatedQuantity === 0) {
+      // If quantity becomes 0, remove the item completely
+      await remove(itemRef);
+    } else {
+      // Otherwise update with new quantity
+      await update(itemRef, { quantity: updatedQuantity });
+    }
+  } else {
+    throw new Error("Item not found");
+  }
+}
 
 // Get all items in the warehouse
 export async function fetchWarehouseItems(): Promise<Item[]> {
