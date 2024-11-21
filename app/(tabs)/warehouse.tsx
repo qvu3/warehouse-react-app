@@ -23,8 +23,26 @@ const WarehousePage = () => {
   const [quantity, setQuantity] = useState("");
   const [action, setAction] = useState("");
   const [items, setItems] = useState<any[]>([]);
-  const { logout } = useAuth();
+  const { logout, userEmail } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const itemList = await fetchWarehouseItems();
+        if (itemList.length > 0) {
+          setItems(itemList);
+        } else {
+          setItems([]);
+        }
+      } catch (error) {
+        Alert.alert("Error", "Could not fetch items from the warehouse");
+        console.error("Error fetching items:", error);
+      }
+    };
+
+    fetchItems();
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -35,33 +53,30 @@ const WarehousePage = () => {
     if (action === "add") {
       if (itemCode && quantity) {
         try {
-          addItem(itemCode, parseInt(quantity));
+          await addItem(itemCode, parseInt(quantity));
           alert("Thêm máy thành công!");
+          const updatedItems = await fetchWarehouseItems();
+          setItems(updatedItems);
+          setItemCode("");
+          setQuantity("");
         } catch (error) {
           alert("Có lỗi xảy ra khi thêm máy!");
         }
       } else {
         alert("Vui lòng nhập mã máy và số lượng!");
       }
-    } else if (action === "view") {
-      // Fetch and display all items in warehouse
-      try {
-        const itemList = await fetchWarehouseItems();
-        if (itemList.length > 0) {
-          setItems(itemList);
-          console.log("Items to render:", itemList); // Confirm items are set in state
-        } else {
-          Alert.alert("No Items", "No items found in the warehouse");
-          setItems([]);
-        }
-      } catch (error) {
-        Alert.alert("Error", "Could not fetch items from the warehouse");
-        console.error("Error fetching items:", error);
-      }
     } else if (action === "delete") {
       if (itemCode && quantity) {
-        deleteItem(itemCode, parseInt(quantity));
-        alert("Xóa máy thành công!");
+        try {
+          await deleteItem(itemCode, parseInt(quantity));
+          alert("Xóa máy thành công!");
+          const updatedItems = await fetchWarehouseItems();
+          setItems(updatedItems);
+          setItemCode("");
+          setQuantity("");
+        } catch (error) {
+          alert("Có lỗi xảy ra khi xóa máy!");
+        }
       } else {
         alert("Vui lòng nhập mã máy!");
       }
@@ -77,7 +92,7 @@ const WarehousePage = () => {
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.headerContainer}>
-        <Text style={styles.greeting}>Xin chào bạn!</Text>
+        <Text style={styles.greeting}>Xin chào {userEmail}!</Text>
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Đăng xuất</Text>
         </TouchableOpacity>
@@ -109,11 +124,10 @@ const WarehousePage = () => {
         <Picker.Item label="Chọn hành động" value="" />
         <Picker.Item label="Thêm máy" value="add" />
         <Picker.Item label="Xóa máy" value="delete" />
-        <Picker.Item label="Kiểm tra số lượng" value="view" />
       </Picker>
 
       <TouchableOpacity style={styles.goButton} onPress={handleAction}>
-        <Text style={styles.goButtonText}>Đi</Text>
+        <Text style={styles.goButtonText}>OK</Text>
       </TouchableOpacity>
 
       {/* Display Items in Warehouse */}

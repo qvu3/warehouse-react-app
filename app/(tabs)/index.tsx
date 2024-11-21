@@ -10,23 +10,32 @@ import {
   Image,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { useAuth } from "../config/AuthContext";
 
 const HomePage = () => {
   const router = useRouter();
+  const { isAuthenticated, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace("/login");
+  };
 
   return (
     <ScrollView style={styles.container}>
       {/* Header Section */}
       <View style={styles.headerContainer}>
         <Text style={styles.headerText}>
-          Chào mừng bạn đến với cửa hàng! Xin vui lòng đăng nhập để sử dụng.
+          {isAuthenticated
+            ? "Chào mừng bạn đã đến với cửa hàng!"
+            : "Chào mừng bạn đến với cửa hàng! Xin vui lòng đăng nhập để sử dụng."}
         </Text>
-        <TouchableOpacity style={styles.loginButton}>
-          <Text
-            style={styles.loginButtonText}
-            onPress={() => router.push("/login")}
-          >
-            Đăng nhập
+        <TouchableOpacity
+          style={isAuthenticated ? styles.logoutButton : styles.loginButton}
+          onPress={isAuthenticated ? handleLogout : () => router.push("/login")}
+        >
+          <Text style={styles.buttonText}>
+            {isAuthenticated ? "Đăng xuất" : "Đăng nhập"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -148,6 +157,15 @@ const styles = StyleSheet.create({
   contactText: {
     fontSize: 16,
     marginBottom: 5,
+  },
+  logoutButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: "#ddd",
+    borderRadius: 5,
+  },
+  buttonText: {
+    fontSize: 16,
   },
 });
 

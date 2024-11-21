@@ -16,6 +16,7 @@ import { auth } from "./firebaseConfig";
 
 type AuthContextType = {
   isAuthenticated: boolean;
+  userEmail: string | null;
   login: (email: string, password: string) => Promise<boolean>;
   register: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
@@ -25,10 +26,12 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsAuthenticated(!!user);
+      setUserEmail(user?.email || null);
     });
     return () => unsubscribe();
   }, []);
@@ -71,7 +74,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ isAuthenticated, userEmail, login, register, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

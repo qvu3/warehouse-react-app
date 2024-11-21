@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const { login } = useAuth();
   const router = useRouter();
+  const passwordInputRef = useRef<TextInput>(null);
 
   const handleLogin = async () => {
     const success = await login(email, password);
@@ -27,10 +28,8 @@ const LoginPage = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <Text style={styles.header}>Xin hãy đăng nhập để sử dụng!</Text>
 
-      {/* Login Form */}
       <View style={styles.formContainer}>
         <Text style={styles.label}>Email:</Text>
         <TextInput
@@ -38,23 +37,29 @@ const LoginPage = () => {
           value={email}
           placeholder="Hãy nhập email của bạn"
           onChangeText={setEmail}
+          onSubmitEditing={() => {
+            passwordInputRef.current?.focus();
+          }}
+          returnKeyType="next"
+          blurOnSubmit={false}
         />
 
         <Text style={styles.label}>Mật khẩu:</Text>
         <TextInput
+          ref={passwordInputRef}
           style={styles.input}
           value={password}
           placeholder="Hãy nhập mật khẩu của bạn"
           onChangeText={setPassword}
           secureTextEntry
+          onSubmitEditing={handleLogin}
+          returnKeyType="done"
         />
 
-        {/* Login Button */}
         <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
           <Text style={styles.buttonText}>Đăng nhập</Text>
         </TouchableOpacity>
 
-        {/* Create Account Button */}
         <TouchableOpacity
           style={styles.createAccountButton}
           onPress={() => router.push("/register")}

@@ -30,16 +30,19 @@ const RegisterPage = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Tạo tài khoản</Text>
+      <Text style={styles.header}>Xin tạo tài khoản để đăng nhập!</Text>
+
+      <Text style={styles.label}>Email:</Text>
       <TextInput
         style={styles.input}
-        placeholder="Email"
+        placeholder="Hãy nhập email của bạn"
         value={email}
         onChangeText={setEmail}
       />
+      <Text style={styles.label}>Mật khẩu:</Text>
       <TextInput
         style={styles.input}
-        placeholder="Mật khẩu"
+        placeholder="Hãy nhập mật khẩu của bạn"
         value={password}
         onChangeText={setPassword}
         secureTextEntry

@@ -61,7 +61,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   greeting: { fontSize: 18 },
-  logoutButton: { backgroundColor: "#ddd", padding: 5, borderRadius: 5 },
+  logoutButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: "#ddd",
+    borderRadius: 5,
+  },
   logoutButtonText: { fontSize: 16 },
   navContainer: {
     flexDirection: "row",

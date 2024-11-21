@@ -4,10 +4,11 @@ import React from "react";
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { AuthProvider } from "../config/AuthContext";
+import { useAuth } from "../config/AuthContext";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const { isAuthenticated } = useAuth();
 
   return (
     <Tabs
@@ -38,6 +39,8 @@ export default function TabLayout() {
               color={color}
             />
           ),
+          href: isAuthenticated ? null : "/login",
+          tabBarStyle: { display: isAuthenticated ? "none" : "flex" },
         }}
       />
       <Tabs.Screen
@@ -50,6 +53,8 @@ export default function TabLayout() {
               color={color}
             />
           ),
+          href: isAuthenticated ? null : "/register",
+          tabBarStyle: { display: isAuthenticated ? "none" : "flex" },
         }}
       />
       <Tabs.Screen
@@ -62,6 +67,8 @@ export default function TabLayout() {
               color={color}
             />
           ),
+          href: isAuthenticated ? "/warehouse" : null,
+          tabBarStyle: { display: isAuthenticated ? "flex" : "none" },
         }}
       />
       <Tabs.Screen
@@ -74,6 +81,8 @@ export default function TabLayout() {
               color={color}
             />
           ),
+          href: isAuthenticated ? "/order" : null,
+          tabBarStyle: { display: isAuthenticated ? "flex" : "none" },
         }}
       />
       <Tabs.Screen
@@ -86,6 +95,8 @@ export default function TabLayout() {
               color={color}
             />
           ),
+          href: isAuthenticated ? "/dashboard" : null,
+          tabBarStyle: { display: isAuthenticated ? "flex" : "none" },
         }}
       />
     </Tabs>
