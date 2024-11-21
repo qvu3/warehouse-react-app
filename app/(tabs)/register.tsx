@@ -19,7 +19,7 @@ const RegisterPage = () => {
   const handleRegister = async () => {
     const success = await register(email, password);
     if (success) {
-      router.push("/dashboard"); // Redirect to the index page after successful registration
+      router.push("/warehouse"); // Redirect to the index page after successful registration
     } else {
       Alert.alert(
         "Đăng ký thất bại",

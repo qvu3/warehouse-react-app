@@ -19,6 +19,17 @@ type Item = {
   timestamp: number;
 };
 
+type Order = {
+  itemCode: string;
+  quantity: number;
+  recipient: string;
+  address: string;
+  phone: string;
+  senderEmail: string;
+  status: "pending" | "approved" | "rejected";
+  timestamp: number;
+};
+
 // add item to warehouse
 export async function addItem(itemCode: string, quantity: number) {
   const warehouseRef = ref(database, "warehouse");
@@ -104,5 +115,114 @@ export async function fetchWarehouseItems(): Promise<Item[]> {
   } catch (error) {
     console.error("Error fetching warehouse items:", error);
     return [];
+  }
+}
+
+export async function createOrder(
+  orderData: Omit<Order, "status" | "timestamp">
+) {
+  // First check if item exists and has enough quantity
+  const warehouseRef = ref(database, "warehouse");
+  const itemQuery = query(
+    warehouseRef,
+    orderByChild("itemCode"),
+    equalTo(orderData.itemCode)
+  );
+
+  const snapshot = await get(itemQuery);
+  if (!snapshot.exists()) {
+    throw new Error("Item not found in warehouse");
+  }
+
+  const itemKey = Object.keys(snapshot.val())[0];
+  const item = snapshot.val()[itemKey];
+
+  if (item.quantity < orderData.quantity) {
+    throw new Error("Not enough items in warehouse");
+  }
+
+  // Create the order
+  const ordersRef = ref(database, "orders");
+  const newOrderRef = push(ordersRef);
+
+  await set(newOrderRef, {
+    ...orderData,
+    status: "pending",
+    timestamp: Date.now(),
+  });
+}
+
+export async function fetchOrders(): Promise<Order[]> {
+  const ordersRef = ref(database, "orders");
+  try {
+    const snapshot = await get(ordersRef);
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      const ordersList = Object.entries(data).map(([key, value]) => ({
+        id: key,
+        ...(value as Order),
+      }));
+      return ordersList;
+    }
+    return [];
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    return [];
+  }
+}
+
+export async function updateOrderStatus(
+  orderId: string,
+  status: "approved" | "rejected"
+) {
+  try {
+    const orderRef = ref(database, `orders/${orderId}`);
+    await update(orderRef, { status });
+
+    if (status === "approved") {
+      // Get the order details
+      const orderSnapshot = await get(orderRef);
+      if (!orderSnapshot.exists()) {
+        throw new Error("Order not found");
+      }
+
+      const order = orderSnapshot.val();
+
+      // Find the item in warehouse
+      const warehouseRef = ref(database, "warehouse");
+      const itemQuery = query(
+        warehouseRef,
+        orderByChild("itemCode"),
+        equalTo(order.itemCode)
+      );
+
+      const warehouseSnapshot = await get(itemQuery);
+      if (!warehouseSnapshot.exists()) {
+        throw new Error("Item not found in warehouse");
+      }
+
+      // Get the warehouse item details
+      const itemKey = Object.keys(warehouseSnapshot.val())[0];
+      const warehouseItem = warehouseSnapshot.val()[itemKey];
+
+      if (warehouseItem.quantity < order.quantity) {
+        throw new Error("Not enough items in warehouse");
+      }
+
+      // Update warehouse quantity
+      const updatedQuantity = warehouseItem.quantity - order.quantity;
+      const itemRef = ref(database, `warehouse/${itemKey}`);
+
+      if (updatedQuantity === 0) {
+        // Remove item if quantity becomes 0
+        await remove(itemRef);
+      } else {
+        // Update with new quantity
+        await update(itemRef, { quantity: updatedQuantity });
+      }
+    }
+  } catch (error: any) {
+    console.error("Error updating order status:", error);
+    throw new Error(error.message || "Failed to update order status");
   }
 }

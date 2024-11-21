@@ -13,6 +13,7 @@ import {
   signOut,
 } from "firebase/auth";
 import { auth } from "./firebaseConfig";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type AuthContextType = {
   isAuthenticated: boolean;
@@ -29,18 +30,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setIsAuthenticated(!!user);
-      setUserEmail(user?.email || null);
-    });
-    return () => unsubscribe();
+    checkStoredAuth();
   }, []);
+
+  const checkStoredAuth = async () => {
+    try {
+      const storedEmail = await AsyncStorage.getItem("userEmail");
+      if (storedEmail) {
+        setIsAuthenticated(true);
+        setUserEmail(storedEmail);
+      }
+    } catch (error) {
+      console.error("Error checking stored auth:", error);
+    }
+  };
 
   // Login function
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       setIsAuthenticated(true);
+      setUserEmail(email);
+      await AsyncStorage.setItem("userEmail", email);
       return true;
     } catch (error) {
       console.error("Login error:", error);
@@ -68,6 +79,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       await signOut(auth);
       setIsAuthenticated(false);
+      setUserEmail(null);
+      await AsyncStorage.removeItem("userEmail");
     } catch (error) {
       console.error("Logout error:", error);
     }

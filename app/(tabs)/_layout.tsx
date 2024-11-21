@@ -72,30 +72,44 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="order"
+        name="sales"
         options={{
-          title: "Gửi hàng",
+          title: "Bán hàng",
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
-              name={focused ? "cube" : "cube-outline"}
+              name={focused ? "cart" : "cart-outline"}
               color={color}
             />
           ),
-          href: isAuthenticated ? "/order" : null,
+          href: isAuthenticated ? "/sales" : null,
           tabBarStyle: { display: isAuthenticated ? "flex" : "none" },
         }}
       />
       <Tabs.Screen
-        name="dashboard"
+        name="orders"
         options={{
-          title: "Thống kê",
+          title: "Đơn hàng",
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
-              name={focused ? "cube" : "cube-outline"}
+              name={focused ? "clipboard" : "clipboard-outline"}
               color={color}
             />
           ),
-          href: isAuthenticated ? "/dashboard" : null,
+          href: isAuthenticated ? "/orders" : null,
+          tabBarStyle: { display: isAuthenticated ? "flex" : "none" },
+        }}
+      />
+      <Tabs.Screen
+        name="salesHistory"
+        options={{
+          title: "Lịch sử bán hàng",
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon
+              name={focused ? "list" : "list-outline"}
+              color={color}
+            />
+          ),
+          href: isAuthenticated ? "/salesHistory" : null,
           tabBarStyle: { display: isAuthenticated ? "flex" : "none" },
         }}
       />
