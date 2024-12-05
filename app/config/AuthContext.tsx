@@ -20,7 +20,10 @@ type AuthContextType = {
   isAuthenticated: boolean;
   userEmail: string | null;
   role: string | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (
+    email: string,
+    password: string
+  ) => Promise<{ success: boolean; role: string | null }>;
   register: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
 };
@@ -78,31 +81,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   // Login function
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string) => {
     try {
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
         password
       );
-      const userId = userCredential.user.uid;
-
-      // Fetch user role from database
-      const userRef = ref(database, `users/${userId}`);
+      const userRef = ref(database, `users/${userCredential.user.uid}`);
       const snapshot = await get(userRef);
-      if (snapshot.exists()) {
-        const userData = snapshot.val();
-        setRole(userData.role);
-        console.log("User role set during login:", userData.role);
-      }
 
-      setIsAuthenticated(true);
-      setUserEmail(email);
-      await AsyncStorage.setItem("userEmail", email);
-      return true;
+      if (snapshot.exists()) {
+        const userRole = snapshot.val().role;
+        setRole(userRole);
+        await AsyncStorage.setItem("userRole", userRole);
+        await AsyncStorage.setItem("userEmail", email);
+        return { success: true, role: userRole };
+      }
+      return { success: false, role: null };
     } catch (error) {
       console.error("Login error:", error);
-      return false;
+      return { success: false, role: null };
     }
   };
 

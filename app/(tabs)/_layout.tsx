@@ -27,6 +27,8 @@ export default function TabLayout() {
               color={color}
             />
           ),
+          href: role !== "shipper" ? "/" : null,
+          tabBarStyle: { display: role !== "shipper" ? "flex" : "none" },
         }}
       />
       <Tabs.Screen
@@ -67,8 +69,8 @@ export default function TabLayout() {
               color={color}
             />
           ),
-          href: isAuthenticated ? "/warehouse" : null,
-          tabBarStyle: { display: isAuthenticated ? "flex" : "none" },
+          href: role === "admin" ? "/warehouse" : null,
+          tabBarStyle: { display: role === "admin" ? "flex" : "none" },
         }}
       />
       <Tabs.Screen
@@ -81,8 +83,8 @@ export default function TabLayout() {
               color={color}
             />
           ),
-          href: isAuthenticated ? "/sales" : null,
-          tabBarStyle: { display: isAuthenticated ? "flex" : "none" },
+          href: role === "admin" ? "/sales" : null,
+          tabBarStyle: { display: role === "admin" ? "flex" : "none" },
         }}
       />
       <Tabs.Screen
@@ -95,8 +97,8 @@ export default function TabLayout() {
               color={color}
             />
           ),
-          href: isAuthenticated ? "/orders" : null,
-          tabBarStyle: { display: isAuthenticated ? "flex" : "none" },
+          href: role === "shipper" ? "/orders" : null,
+          tabBarStyle: { display: role === "shipper" ? "flex" : "none" },
         }}
       />
       <Tabs.Screen
@@ -109,8 +111,8 @@ export default function TabLayout() {
               color={color}
             />
           ),
-          href: isAuthenticated ? "/salesHistory" : null,
-          tabBarStyle: { display: isAuthenticated ? "flex" : "none" },
+          href: role === "admin" ? "/salesHistory" : null,
+          tabBarStyle: { display: role === "admin" ? "flex" : "none" },
         }}
       />
       <Tabs.Screen

@@ -13,15 +13,24 @@ import { useRouter } from "expo-router";
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { login } = useAuth();
+  const { login, role } = useAuth();
   const router = useRouter();
   const passwordInputRef = useRef<TextInput>(null);
 
   const handleLogin = async () => {
-    const success = await login(email, password);
-    if (success) {
-      router.replace("/warehouse");
-    } else {
+    try {
+      const { success, role: userRole } = await login(email, password);
+      if (success) {
+        if (userRole === "admin") {
+          router.replace("/warehouse");
+        } else {
+          router.replace("/orders");
+        }
+      } else {
+        alert("Đăng nhập thất bại. Vui lòng thử lại!");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
       alert("Đăng nhập thất bại. Vui lòng thử lại!");
     }
   };

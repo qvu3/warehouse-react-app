@@ -6,11 +6,13 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import { ref, get, update, onValue } from "firebase/database";
 import { database } from "../config/firebaseConfig";
 import { useAuth } from "../config/AuthContext";
 import { Picker } from "@react-native-picker/picker";
+import { useRouter } from "expo-router";
 
 type User = {
   id: string;
@@ -21,7 +23,8 @@ type User = {
 const UsersPage = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const { userEmail, role } = useAuth();
+  const { userEmail, role, logout } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     if (role !== "admin") {
@@ -79,6 +82,11 @@ const UsersPage = () => {
     }
   };
 
+  const handleLogout = async () => {
+    await logout();
+    router.replace("/login");
+  };
+
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
@@ -103,8 +111,10 @@ const UsersPage = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.headerContainer}>
-        <Text style={styles.header}>Quản lý người dùng</Text>
-        <Text style={styles.subHeader}>Logged in as: {userEmail}</Text>
+        <Text style={styles.greeting}>Xin chào {userEmail}!</Text>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutButtonText}>Đăng xuất</Text>
+        </TouchableOpacity>
       </View>
 
       {users.map((user) => (
@@ -134,16 +144,20 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   headerContainer: {
-    marginBottom: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 10,
   },
-  header: {
-    fontSize: 24,
-    fontWeight: "bold",
+  greeting: {
+    fontSize: 18,
   },
-  subHeader: {
-    fontSize: 14,
-    color: "#666",
-    marginTop: 5,
+  logoutButton: {
+    backgroundColor: "#ddd",
+    padding: 5,
+    borderRadius: 5,
+  },
+  logoutButtonText: {
+    fontSize: 16,
   },
   userContainer: {
     backgroundColor: "#f5f5f5",

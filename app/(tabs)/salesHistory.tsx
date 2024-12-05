@@ -12,6 +12,8 @@ import {
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { fetchOrders } from "../config/databaseService";
+import { useAuth } from "../config/AuthContext";
+import { useRouter } from "expo-router";
 
 const SalesHistoryPage = () => {
   const [orders, setOrders] = useState<any[]>([]);
@@ -19,6 +21,8 @@ const SalesHistoryPage = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
+  const { logout, userEmail } = useAuth();
+  const router = useRouter();
 
   // Date picker states
   const [showStartPicker, setShowStartPicker] = useState(false);
@@ -42,6 +46,11 @@ const SalesHistoryPage = () => {
     } catch (error) {
       Alert.alert("Error", "Could not fetch sales history");
     }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace("/login");
   };
 
   const handleFilter = () => {
@@ -106,7 +115,13 @@ const SalesHistoryPage = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.header}>Lịch sử bán hàng</Text>
+      {/* <Text style={styles.header}>Lịch sử bán hàng</Text> */}
+      <View style={styles.headerContainer}>
+        <Text style={styles.greeting}>Xin chào {userEmail}!</Text>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutButtonText}>Đăng xuất</Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.filterContainer}>
         <View style={styles.dateInputContainer}>
@@ -301,6 +316,24 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontSize: 16,
+  },
+  logoutButton: {
+    backgroundColor: "#ddd",
+    padding: 5,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  logoutButtonText: {
+    color: "#fff",
+    fontSize: 16,
+  },
+  headerContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  greeting: {
+    fontSize: 18,
   },
 });
 
