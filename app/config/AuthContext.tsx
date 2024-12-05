@@ -12,12 +12,14 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
-import { auth } from "./firebaseConfig";
+import { auth, database } from "./firebaseConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ref, set, get } from "firebase/database";
 
 type AuthContextType = {
   isAuthenticated: boolean;
   userEmail: string | null;
+  role: string | null;
   login: (email: string, password: string) => Promise<boolean>;
   register: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
@@ -28,27 +30,72 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
-    checkStoredAuth();
-  }, []);
+    // Check AsyncStorage for existing auth state
+    const loadStoredAuth = async () => {
+      try {
+        const storedEmail = await AsyncStorage.getItem("userEmail");
+        const storedRole = await AsyncStorage.getItem("userRole");
 
-  const checkStoredAuth = async () => {
-    try {
-      const storedEmail = await AsyncStorage.getItem("userEmail");
-      if (storedEmail) {
-        setIsAuthenticated(true);
-        setUserEmail(storedEmail);
+        if (storedEmail && storedRole) {
+          setIsAuthenticated(true);
+          setUserEmail(storedEmail);
+          setRole(storedRole);
+        }
+      } catch (error) {
+        console.error("Error loading stored auth:", error);
       }
-    } catch (error) {
-      console.error("Error checking stored auth:", error);
-    }
-  };
+    };
+
+    loadStoredAuth();
+
+    // Listen for Firebase auth state changes
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setIsAuthenticated(true);
+        setUserEmail(user.email);
+        const userRef = ref(database, `users/${user.uid}`);
+        const snapshot = await get(userRef);
+
+        if (snapshot.exists()) {
+          const userRole = snapshot.val().role;
+          setRole(userRole);
+          await AsyncStorage.setItem("userRole", userRole);
+          await AsyncStorage.setItem("userEmail", user.email || "");
+        }
+      } else {
+        setIsAuthenticated(false);
+        setUserEmail(null);
+        setRole(null);
+        await AsyncStorage.removeItem("userRole");
+        await AsyncStorage.removeItem("userEmail");
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Login function
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const userId = userCredential.user.uid;
+
+      // Fetch user role from database
+      const userRef = ref(database, `users/${userId}`);
+      const snapshot = await get(userRef);
+      if (snapshot.exists()) {
+        const userData = snapshot.val();
+        setRole(userData.role);
+        console.log("User role set during login:", userData.role);
+      }
+
       setIsAuthenticated(true);
       setUserEmail(email);
       await AsyncStorage.setItem("userEmail", email);
@@ -65,8 +112,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     password: string
   ): Promise<boolean> => {
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const userId = userCredential.user.uid;
+
+      // Store user with default role in Firebase Realtime Database
+      const userRef = ref(database, `users/${userId}`);
+      await set(userRef, {
+        email,
+        role: "user", // Default role
+      });
+
       setIsAuthenticated(true);
+      setUserEmail(email);
       return true;
     } catch (error) {
       console.error("Registration error:", error);
@@ -80,7 +141,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await signOut(auth);
       setIsAuthenticated(false);
       setUserEmail(null);
+      setRole(null);
       await AsyncStorage.removeItem("userEmail");
+      await AsyncStorage.removeItem("userRole");
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -88,7 +151,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, userEmail, login, register, logout }}
+      value={{ isAuthenticated, userEmail, role, login, register, logout }}
     >
       {children}
     </AuthContext.Provider>

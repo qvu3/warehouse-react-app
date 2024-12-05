@@ -8,7 +8,7 @@ import { useAuth } from "../config/AuthContext";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, role } = useAuth();
 
   return (
     <Tabs
@@ -111,6 +111,20 @@ export default function TabLayout() {
           ),
           href: isAuthenticated ? "/salesHistory" : null,
           tabBarStyle: { display: isAuthenticated ? "flex" : "none" },
+        }}
+      />
+      <Tabs.Screen
+        name="users"
+        options={{
+          title: "Quản lý Users",
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon
+              name={focused ? "people" : "people-outline"}
+              color={color}
+            />
+          ),
+          href: role === "admin" ? "/users" : null,
+          tabBarStyle: { display: role === "admin" ? "flex" : "none" },
         }}
       />
     </Tabs>

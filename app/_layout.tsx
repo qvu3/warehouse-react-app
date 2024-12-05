@@ -12,6 +12,7 @@ import "react-native-reanimated";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { AuthGuard } from "./config/AuthGuard";
 import { AuthProvider } from "./config/AuthContext";
+import { initializeDatabase } from "./config/initializeDatabase";
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
@@ -26,6 +27,10 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
+
+  // useEffect(() => {
+  //   initializeDatabase();
+  // }, []);
 
   if (!loaded) {
     return null;
